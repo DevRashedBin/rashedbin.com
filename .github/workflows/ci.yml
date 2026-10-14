@@ -35,6 +35,12 @@ jobs:
             echo "NEXT_PUBLIC_SUPABASE_URL=$API_URL"
             echo "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=$PUBLISHABLE_KEY"
             echo "SUPABASE_SECRET_KEY=$SECRET_KEY"
+            echo "EMAIL_PROVIDER=mailpit"
+            echo "EMAIL_MODE=live"
+            echo "MAILPIT_URL=${MAILPIT_URL:-$INBUCKET_URL}"
+            echo "APP_URL=http://localhost:3100"
+            echo "IP_HASH_SALT=ci-only-salt"
+            echo "CRON_SECRET=local-cron-secret-0123456789"
           } > .env.local
       - name: Generated database types are up to date
         run: |

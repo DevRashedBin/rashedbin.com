@@ -3,10 +3,9 @@
 Website, CRM, client portal and invoicing for **Rashed (Rashedul Islam)** — an independent website
 design, development and optimisation business serving the UK, US, Europe and Bangladesh.
 
-> **Status:** Phase 3 of 7 complete (database, authentication, permissions, admin dashboard). The
-> enquiry form validates fully but does **not** store submissions yet — that arrives in Phase 4. Do
-> not point the production domain at this app until Phase 4 is complete. See
-> [docs/ROADMAP.md](docs/ROADMAP.md).
+> **Status:** Phases 0–4 complete locally (site, database, auth, admin, CRM, email). Enquiries are
+> stored and emails work against the local inbox; production needs the accounts listed in
+> [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md). See [docs/ROADMAP.md](docs/ROADMAP.md).
 
 ## Stack
 
@@ -30,7 +29,9 @@ pnpm admin:bootstrap --email you@example.com   # create the first admin (prompts
 pnpm dev                         # http://localhost:3000 — admin at /admin, client portal at /portal
 ```
 
-Local emails (portal sign-in codes) arrive in Mailpit at http://127.0.0.1:54324.
+Local emails (enquiry acknowledgements, alerts, follow-ups, portal sign-in codes) arrive in
+Mailpit at http://127.0.0.1:54324 — set `EMAIL_PROVIDER=mailpit` and `EMAIL_MODE=live` in
+`.env.local`. Nothing is sent to real inboxes locally.
 
 ## Scripts
 

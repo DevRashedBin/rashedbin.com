@@ -9,9 +9,9 @@ describe("structured data", () => {
     expect(JSON.parse(out).text).toBe("</script><script>alert(1)</script>");
   });
 
-  it("does not include unconfirmed contact details or profiles", () => {
+  it("includes only confirmed contact details", () => {
     const graph = JSON.stringify(siteJsonLd());
-    expect(graph).not.toContain('"email"');
+    expect(graph).toContain('"email":"hello@rashedbin.com"');
     expect(graph).not.toContain('"address"');
     expect(graph).not.toContain('"aggregateRating"');
   });

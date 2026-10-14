@@ -39,6 +39,22 @@ export function SettingsForm({ values }: { values: Record<string, string> }) {
           defaultValue={v.contactEmail}
           error={e.contactEmail}
         />
+        <Input
+          name="notificationEmail"
+          label="Notification email"
+          type="email"
+          defaultValue={v.notificationEmail}
+          error={e.notificationEmail}
+          hint="New enquiry alerts are sent here."
+        />
+        <Input
+          name="consultationUrl"
+          label="Booking link"
+          defaultValue={v.consultationUrl}
+          error={e.consultationUrl}
+          placeholder="https://cal.com/…"
+          hint="Used as {{consultation_link}} in follow-up emails."
+        />
         <Input name="phone" label="Phone" defaultValue={v.phone} error={e.phone} />
         <Input name="website" label="Website" defaultValue={v.website} error={e.website} />
         <Input

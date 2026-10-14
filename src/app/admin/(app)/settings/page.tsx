@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { PageHeader, Panel } from "@/components/admin/shell";
 import { requireAdmin } from "@/server/auth";
 import { createSupabaseServerClient } from "@/server/supabase/server";
@@ -15,6 +16,14 @@ export default async function SettingsPage() {
       <PageHeader
         title="Settings"
         description="Business details used on invoices, emails and the client portal."
+        actions={
+          <Link
+            href="/admin/settings/pipeline"
+            className="rounded-full border border-ink/20 px-4 py-2 text-sm hover:border-ink"
+          >
+            Pipeline stages
+          </Link>
+        }
       />
       <Panel className="max-w-3xl">
         <SettingsForm
@@ -22,6 +31,8 @@ export default async function SettingsPage() {
             businessName: data.business_name,
             legalName: data.legal_name ?? "",
             contactEmail: data.contact_email ?? "",
+            notificationEmail: data.notification_email ?? "",
+            consultationUrl: data.consultation_url ?? "",
             phone: data.phone ?? "",
             address: data.address ?? "",
             website: data.website ?? "",

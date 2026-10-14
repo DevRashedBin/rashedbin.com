@@ -29,6 +29,8 @@ export async function saveSettingsAction(
       business_name: d.businessName,
       legal_name: d.legalName,
       contact_email: d.contactEmail,
+      notification_email: d.notificationEmail,
+      consultation_url: d.consultationUrl,
       phone: d.phone,
       address: d.address,
       website: d.website,

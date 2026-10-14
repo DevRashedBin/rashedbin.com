@@ -27,15 +27,32 @@ const upcoming = [
 export default async function AdminOverviewPage() {
   await requireAdmin();
   const supabase = await createSupabaseServerClient();
-  const [clients, services, audit] = await Promise.all([
-    supabase.from("clients").select("id", { count: "exact", head: true }).is("archived_at", null),
-    supabase.from("services").select("published"),
-    supabase
-      .from("audit_log")
-      .select("id, occurred_at, action, table_name")
-      .order("occurred_at", { ascending: false })
-      .limit(8),
-  ]);
+  const [clients, services, audit, newLeads, incompleteLeads, recentLeads, failedEmails] =
+    await Promise.all([
+      supabase.from("clients").select("id", { count: "exact", head: true }).is("archived_at", null),
+      supabase.from("services").select("published"),
+      supabase
+        .from("audit_log")
+        .select("id, occurred_at, action, table_name")
+        .order("occurred_at", { ascending: false })
+        .limit(8),
+      supabase.from("leads").select("id", { count: "exact", head: true }).eq("stage_key", "new"),
+      supabase
+        .from("leads")
+        .select("id", { count: "exact", head: true })
+        .eq("stage_key", "incomplete"),
+      supabase
+        .from("leads")
+        .select("id, ref, name, service_label, created_at")
+        .not("submitted_at", "is", null)
+        .is("anonymised_at", null)
+        .order("created_at", { ascending: false })
+        .limit(5),
+      supabase
+        .from("email_messages")
+        .select("id", { count: "exact", head: true })
+        .eq("status", "failed"),
+    ]);
   const published = services.data?.filter((s) => s.published).length ?? 0;
   const drafts = (services.data?.length ?? 0) - published;
 
@@ -44,14 +61,56 @@ export default async function AdminOverviewPage() {
       <PageHeader
         title="Overview"
         description="Everyday tasks first. More modules appear here as each phase is completed."
-        actions={<ButtonLink href="/admin/clients/new">New client</ButtonLink>}
+        actions={
+          <>
+            <ButtonLink href="/admin/leads" variant="outline">
+              View leads
+            </ButtonLink>
+            <ButtonLink href="/admin/clients/new">New client</ButtonLink>
+          </>
+        }
       />
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <Stat label="New enquiries" value={newLeads.count ?? 0} href="/admin/leads?stage=new" />
+        <Stat
+          label="Incomplete enquiries"
+          value={incompleteLeads.count ?? 0}
+          href="/admin/leads?stage=incomplete"
+        />
         <Stat label="Active clients" value={clients.count ?? 0} href="/admin/clients" />
-        <Stat label="Published services" value={published} href="/admin/content" />
-        <Stat label="Draft services" value={drafts} href="/admin/content" />
+        <Stat
+          label="Failed emails"
+          value={failedEmails.count ?? 0}
+          href="/admin/emails?status=failed"
+        />
       </div>
+      <p className="mt-3 text-xs text-stone">
+        {published} published service{published === 1 ? "" : "s"}
+        {drafts ? `, ${drafts} draft${drafts === 1 ? "" : "s"}` : ""}.
+      </p>
       <div className="mt-6 grid gap-6 xl:grid-cols-[1.4fr_1fr]">
+        <Panel title="Latest enquiries">
+          {recentLeads.data?.length ? (
+            <ul className="divide-y divide-ink/10 text-sm">
+              {recentLeads.data.map((l) => (
+                <li key={l.id}>
+                  <Link
+                    href={`/admin/leads/${l.id}`}
+                    className="flex justify-between gap-4 py-2.5 hover:underline"
+                  >
+                    <span className="min-w-0 truncate">
+                      {l.name}{" "}
+                      <span className="text-stone">· {l.service_label ?? "Not sure yet"}</span>
+                    </span>
+                    <span className="shrink-0 font-mono text-xs text-stone">{l.ref}</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-sm text-stone">No enquiries yet.</p>
+          )}
+        </Panel>
         <Panel title="Recent activity">
           {audit.data?.length ? (
             <ul className="divide-y divide-ink/10 text-sm">

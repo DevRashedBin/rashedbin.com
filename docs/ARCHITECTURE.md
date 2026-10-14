@@ -58,3 +58,18 @@ code and are selected per service by key (`components/graphics/service-demo.tsx`
 - Content saves call `revalidateTag("content", "max")` and warm the affected pages, instead of
   `updateTag`: expiring prerendered pages outright intermittently breaks the first client-side
   navigation in Next.js 16.4 ("Connection closed"). Re-test on upgrade (see the content e2e test).
+
+## Email and intake (Phase 4)
+
+- `src/server/email/`: `outbox.ts` writes every message to `email_messages` before sending, keyed
+  by an idempotency key; `deliverEmail` claims the row so concurrent calls send once; failures are
+  recorded and retried with backoff by `/api/cron/email`. Providers: Resend (with its
+  Idempotency-Key header) or Mailpit. `EMAIL_MODE` (log/allowlist/live) decides whether anything
+  leaves the server.
+- Delivery status changes only via `/api/webhooks/resend`, after Svix signature verification;
+  events are stored once by id.
+- Public intake (`src/app/(site)/start-a-project/actions.ts`): honeypot, minimum fill time,
+  Turnstile, rate limits, then `submit_inquiry` in one transaction; notifications are queued after
+  the response with `after()`, so an email failure never affects the stored lead.
+- The service role is used only by intake, the outbox, webhooks and scheduled jobs — each behind
+  its own checks. Admin pages use the admin's session and RLS.

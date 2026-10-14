@@ -4,12 +4,13 @@ import { AdminNavLinks, type AdminNavItem } from "./nav-links";
 
 const nav: AdminNavItem[] = [
   { href: "/admin", label: "Overview" },
-  { href: "/admin/leads", label: "Leads", phase: 4 },
+  { href: "/admin/leads", label: "Leads" },
   { href: "/admin/projects", label: "Projects", phase: 5 },
   { href: "/admin/clients", label: "Clients" },
   { href: "/admin/invoices", label: "Invoices", phase: 6 },
   { href: "/admin/payments", label: "Payments", phase: 6 },
-  { href: "/admin/emails", label: "Email activity", phase: 4 },
+  { href: "/admin/emails", label: "Email activity" },
+  { href: "/admin/templates", label: "Email templates" },
   { href: "/admin/content", label: "Website content" },
   { href: "/admin/settings", label: "Settings" },
   { href: "/admin/audit", label: "Audit log" },

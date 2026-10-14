@@ -37,6 +37,31 @@ Set `NEXT_PUBLIC_SITE_URL` to the canonical origin (`https://rashedbin.com`) in 
    authenticator app. Store the setup key somewhere safe; if the device is lost, run the script
    with `--reset-mfa`.
 
+## Email (Resend) — hello@rashedbin.com
+
+1. Create a Resend account and add the domain **rashedbin.com**. Add the DNS records Resend shows
+   (SPF/MX and DKIM) at your DNS host, plus a DMARC record, e.g.
+   `_dmarc.rashedbin.com TXT "v=DMARC1; p=quarantine; rua=mailto:hello@rashedbin.com"`.
+   Wait until Resend shows the domain as verified.
+2. Make sure **hello@rashedbin.com** can receive mail (your mailbox provider's MX records) — it is
+   the reply-to address and receives new-enquiry alerts.
+3. Create an API key (sending access only) → `RESEND_API_KEY`.
+4. Add a webhook to `https://rashedbin.com/api/webhooks/resend` for delivered, delivery delayed,
+   bounced and complained events → copy its signing secret to `RESEND_WEBHOOK_SECRET`.
+5. Production env: `EMAIL_PROVIDER=resend`, `EMAIL_MODE=live`,
+   `EMAIL_FROM="Rashed <hello@rashedbin.com>"`, `EMAIL_REPLY_TO=hello@rashedbin.com`,
+   `APP_URL=https://rashedbin.com`. Preview deployments: `EMAIL_MODE=allowlist` with your own address.
+6. In Supabase → Authentication → SMTP, use Resend's SMTP details so portal sign-in codes come from
+   the same domain.
+
+## Abuse protection and jobs
+
+- Cloudflare Turnstile: create a widget for rashedbin.com → `NEXT_PUBLIC_TURNSTILE_SITE_KEY`,
+  `TURNSTILE_SECRET_KEY`. Without them the check is skipped (development only).
+- `IP_HASH_SALT`: a long random secret (e.g. `openssl rand -hex 32`).
+- `CRON_SECRET`: a long random secret; Vercel sends it to the cron routes automatically. Cron jobs
+  in `vercel.json` need the Vercel Pro plan.
+
 The build reads published services from the database, so the deployment needs these variables at
 build time.
 
