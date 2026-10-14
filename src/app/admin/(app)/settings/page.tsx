@@ -17,12 +17,20 @@ export default async function SettingsPage() {
         title="Settings"
         description="Business details used on invoices, emails and the client portal."
         actions={
-          <Link
-            href="/admin/settings/pipeline"
-            className="rounded-full border border-ink/20 px-4 py-2 text-sm hover:border-ink"
-          >
-            Pipeline stages
-          </Link>
+          <>
+            <Link
+              href="/admin/settings/pipeline"
+              className="rounded-full border border-ink/20 px-4 py-2 text-sm hover:border-ink"
+            >
+              Pipeline stages
+            </Link>
+            <Link
+              href="/admin/settings/project-statuses"
+              className="rounded-full border border-ink/20 px-4 py-2 text-sm hover:border-ink"
+            >
+              Project statuses
+            </Link>
+          </>
         }
       />
       <Panel className="max-w-3xl">
@@ -42,6 +50,8 @@ export default async function SettingsPage() {
             projectPrefix: data.project_prefix,
             numberPadding: String(data.number_padding),
             defaultPaymentTermsDays: String(data.default_payment_terms_days),
+            notifyClientUpdates: data.notify_client_updates ? "on" : "",
+            notifyClientMilestones: data.notify_client_milestones ? "on" : "",
             invoiceFooter: data.invoice_footer ?? "",
             defaultTerms: data.default_terms ?? "",
           }}

@@ -2,7 +2,7 @@
 
 import { useActionState, useState } from "react";
 import { idle } from "@/components/admin/action-state";
-import { Input, Select, Textarea } from "@/components/admin/fields";
+import { Input, Select, Textarea, Toggle } from "@/components/admin/fields";
 import { FormMessage, SubmitButton } from "@/components/admin/form-controls";
 import { CURRENCIES } from "@/domain/inquiry/schema";
 import { formatBusinessNumber } from "@/domain/settings/schema";
@@ -71,6 +71,20 @@ export function SettingsForm({ values }: { values: Record<string, string> }) {
           rows={3}
           className="sm:col-span-2"
           hint="Shown on invoices. Leave empty if you don't want an address printed."
+        />
+      </fieldset>
+      <fieldset className="flex flex-col gap-3">
+        <legend className="mb-3 text-sm font-medium">Client notifications (defaults)</legend>
+        <Toggle
+          name="notifyClientUpdates"
+          label="Email clients when I publish a project update"
+          description="You can still untick it for an individual update."
+          defaultChecked={v.notifyClientUpdates === "on"}
+        />
+        <Toggle
+          name="notifyClientMilestones"
+          label="Email clients when I complete a visible milestone"
+          defaultChecked={v.notifyClientMilestones === "on"}
         />
       </fieldset>
       <fieldset className="grid gap-4 sm:grid-cols-2">

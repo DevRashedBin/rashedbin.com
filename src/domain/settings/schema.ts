@@ -48,6 +48,8 @@ export const businessSettingsSchema = z.object({
     .regex(/^[A-Z0-9]{1,10}$/, "1–10 letters or digits."),
   numberPadding: z.coerce.number().int().min(3, "Between 3 and 8.").max(8, "Between 3 and 8."),
   defaultPaymentTermsDays: z.coerce.number().int().min(0, "0–365 days.").max(365, "0–365 days."),
+  notifyClientUpdates: z.boolean(),
+  notifyClientMilestones: z.boolean(),
   invoiceFooter: optional(2000),
   defaultTerms: optional(5000),
 });

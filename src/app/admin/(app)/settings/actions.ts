@@ -12,7 +12,11 @@ export async function saveSettingsAction(
   formData: FormData,
 ): Promise<ActionState> {
   const user = await assertAdmin();
-  const parsed = businessSettingsSchema.safeParse(Object.fromEntries(formData));
+  const parsed = businessSettingsSchema.safeParse({
+    ...Object.fromEntries(formData),
+    notifyClientUpdates: formData.get("notifyClientUpdates") === "on",
+    notifyClientMilestones: formData.get("notifyClientMilestones") === "on",
+  });
   if (!parsed.success) {
     return {
       status: "error",
@@ -40,6 +44,8 @@ export async function saveSettingsAction(
       project_prefix: d.projectPrefix,
       number_padding: d.numberPadding,
       default_payment_terms_days: d.defaultPaymentTermsDays,
+      notify_client_updates: d.notifyClientUpdates,
+      notify_client_milestones: d.notifyClientMilestones,
       invoice_footer: d.invoiceFooter,
       default_terms: d.defaultTerms,
       updated_by: user.id,

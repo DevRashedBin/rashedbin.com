@@ -14,6 +14,12 @@ export const TEMPLATE_VARIABLES = {
   resume_link: "Link to finish a saved enquiry (system emails only)",
   lead_summary: "Summary of the enquiry (admin alert only)",
   admin_lead_link: "Dashboard link to the enquiry (admin alert only)",
+  project_title: "Project title (project emails)",
+  project_reference: "Project reference, e.g. RB-2026-0001 (project emails)",
+  project_status: "Status as the client sees it (project emails)",
+  update_body: "Text of the project update (update emails)",
+  milestone_title: "Milestone name (milestone emails)",
+  portal_link: "Link to the client area",
 } as const;
 
 export type TemplateVariable = keyof typeof TEMPLATE_VARIABLES;
