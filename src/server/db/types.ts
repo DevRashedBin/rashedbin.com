@@ -108,6 +108,8 @@ export type Database = {
           invoice_prefix: string;
           legal_name: string | null;
           notification_email: string | null;
+          notify_client_milestones: boolean;
+          notify_client_updates: boolean;
           number_padding: number;
           phone: string | null;
           project_prefix: string;
@@ -130,6 +132,8 @@ export type Database = {
           invoice_prefix?: string;
           legal_name?: string | null;
           notification_email?: string | null;
+          notify_client_milestones?: boolean;
+          notify_client_updates?: boolean;
           number_padding?: number;
           phone?: string | null;
           project_prefix?: string;
@@ -151,6 +155,8 @@ export type Database = {
           invoice_prefix?: string;
           legal_name?: string | null;
           notification_email?: string | null;
+          notify_client_milestones?: boolean;
+          notify_client_updates?: boolean;
           number_padding?: number;
           phone?: string | null;
           project_prefix?: string;
@@ -623,6 +629,54 @@ export type Database = {
           },
         ];
       };
+      milestones: {
+        Row: {
+          client_visible: boolean;
+          completed_at: string | null;
+          created_at: string;
+          description: string | null;
+          due_date: string | null;
+          id: string;
+          position: number;
+          project_id: string;
+          title: string;
+          updated_at: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          client_visible?: boolean;
+          completed_at?: string | null;
+          created_at?: string;
+          description?: string | null;
+          due_date?: string | null;
+          id?: string;
+          position?: number;
+          project_id: string;
+          title: string;
+          updated_at?: string;
+        };
+        Update: {
+          client_visible?: boolean;
+          completed_at?: string | null;
+          created_at?: string;
+          description?: string | null;
+          due_date?: string | null;
+          id?: string;
+          position?: number;
+          project_id?: string;
+          title?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "milestones_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       number_sequences: {
         Row: {
           last_value: number;
@@ -722,6 +776,51 @@ export type Database = {
           position?: number;
         };
         Relationships: [];
+      };
+      project_updates: {
+        Row: {
+          author_id: string | null;
+          body: string;
+          created_at: string;
+          id: string;
+          notified_at: string | null;
+          project_id: string;
+          published_at: string | null;
+          title: string | null;
+          updated_at: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          author_id?: string | null;
+          body: string;
+          created_at?: string;
+          id?: string;
+          notified_at?: string | null;
+          project_id: string;
+          published_at?: string | null;
+          title?: string | null;
+          updated_at?: string;
+        };
+        Update: {
+          author_id?: string | null;
+          body?: string;
+          created_at?: string;
+          id?: string;
+          notified_at?: string | null;
+          project_id?: string;
+          published_at?: string | null;
+          title?: string | null;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "project_updates_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       projects: {
         Row: {
@@ -916,9 +1015,28 @@ export type Database = {
           project_ref: string;
         }[];
       };
+      create_project: {
+        Args: {
+          p_client_id: string;
+          p_currency: string;
+          p_description?: string;
+          p_service_slug?: string;
+          p_start_date?: string;
+          p_status_key: string;
+          p_target_date?: string;
+          p_title: string;
+          p_value_minor?: number;
+        };
+        Returns: {
+          project_id: string;
+          project_ref: string;
+        }[];
+      };
+      find_user_id_by_email: { Args: { p_email: string }; Returns: string };
       format_business_number: { Args: { p_prefix: string; p_scope: string }; Returns: string };
       is_admin: { Args: Record<PropertyKey, never>; Returns: boolean };
       is_client_member: { Args: { target_client_id: string }; Returns: boolean };
+      is_project_member: { Args: { target_project_id: string }; Returns: boolean };
       next_sequence_value: { Args: { p_scope: string; p_year: number }; Returns: number };
       purge_expired_data: { Args: Record<PropertyKey, never>; Returns: Json };
       replace_general_faqs: { Args: { items: Json }; Returns: undefined };
