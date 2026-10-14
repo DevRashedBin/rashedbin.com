@@ -5,24 +5,19 @@ import { z } from "zod";
  * server action. Pure module: no I/O, safe to import anywhere.
  */
 
-export const SERVICE_OPTIONS = [
-  { value: "website-design-development", label: "New website" },
-  { value: "website-redesign", label: "Website redesign" },
-  { value: "wordpress-elementor-development", label: "WordPress / Elementor" },
-  { value: "website-bug-fixes", label: "Fix a problem" },
-  { value: "technical-seo", label: "Technical SEO" },
-  { value: "website-security-maintenance", label: "Security & maintenance" },
-  { value: "website-performance-optimisation", label: "Speed & Core Web Vitals" },
-  { value: "woocommerce-development", label: "WooCommerce store" },
-  { value: "not-sure", label: "Not sure yet" },
-] as const;
+/**
+ * Services come from the database (published services) plus "not-sure". The
+ * schema checks the shape of the value; the server checks it is a published
+ * service. Slugs below drive service-specific questions in the form.
+ */
+export type InquiryService = string;
 
-export type InquiryService = (typeof SERVICE_OPTIONS)[number]["value"];
+export const NOT_SURE = "not-sure";
 
-const serviceValues = SERVICE_OPTIONS.map((o) => o.value) as [InquiryService, ...InquiryService[]];
+export type ServiceOption = { value: string; label: string };
 
 /** Services where an existing website is the subject of the work. */
-export const SERVICES_REQUIRING_URL: readonly InquiryService[] = [
+export const SERVICES_REQUIRING_URL: readonly string[] = [
   "website-redesign",
   "website-bug-fixes",
   "technical-seo",
@@ -116,7 +111,11 @@ const optionalText = (max: number) =>
 // ── Step schemas ─────────────────────────────────────────────────────────────
 
 export const serviceStep = z.object({
-  service: z.enum(serviceValues, { error: "Choose the option closest to what you need." }),
+  service: z
+    .string({ error: "Choose the option closest to what you need." })
+    .trim()
+    .regex(/^[a-z0-9]+(-[a-z0-9]+)*$/, "Choose the option closest to what you need.")
+    .max(80),
 });
 
 const detailsBase = z.object({
@@ -226,6 +225,29 @@ export function toFieldErrors(error: z.ZodError): FieldErrors {
   }
   return out;
 }
+
+/**
+ * Saving an unfinished enquiry: only name, email and explicit consent are
+ * required; everything else is whatever the visitor has filled in so far.
+ */
+export const draftSchema = z.object({
+  name: contactStep.shape.name,
+  email: contactStep.shape.email,
+  consent: z.literal(true, {
+    error: "Please confirm you'd like me to store your answers and email you a link.",
+  }),
+  service: z.string().trim().max(80).optional(),
+  websiteUrl: optionalText(300),
+  platform: z.string().max(40).optional(),
+  urgency: z.string().max(40).optional(),
+  storeStage: z.string().max(40).optional(),
+  description: optionalText(5000),
+  currency: z.enum(CURRENCIES).optional(),
+  budget: z.enum(BUDGET_BANDS).optional(),
+  timeline: z.string().max(40).optional(),
+  company: optionalText(160),
+});
+export type InquiryDraft = z.output<typeof draftSchema>;
 
 /** Validate a single step of the multi-step form. */
 export function validateStep(step: InquiryStep, data: Record<string, unknown>): FieldErrors {

@@ -3,8 +3,8 @@
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState, useTransition } from "react";
-import type { InquiryActionState } from "@/app/(site)/start-a-project/actions";
-import { submitInquiryAction } from "@/app/(site)/start-a-project/actions";
+import type { DraftActionState, InquiryActionState } from "@/app/(site)/start-a-project/actions";
+import { saveInquiryDraftAction, submitInquiryAction } from "@/app/(site)/start-a-project/actions";
 import { Button, ButtonLink } from "@/components/ui/button";
 import { Check } from "@/components/ui/icons";
 import {
@@ -12,8 +12,8 @@ import {
   BUDGET_LABELS,
   CURRENCIES,
   INQUIRY_STEPS,
+  NOT_SURE,
   PLATFORM_OPTIONS,
-  SERVICE_OPTIONS,
   SERVICES_REQUIRING_URL,
   STORE_STAGE_OPTIONS,
   TIMELINE_OPTIONS,
@@ -23,11 +23,13 @@ import {
   type FieldErrors,
   type InquiryService,
   type InquiryStep,
+  type ServiceOption,
 } from "@/domain/inquiry/schema";
 import { cn } from "@/lib/cn";
 import { ChoiceGroup, Checkbox, TextArea, TextField } from "./fields";
+import { Turnstile } from "./turnstile";
 
-type FormData = {
+export type InquiryFormData = {
   service?: InquiryService;
   websiteUrl: string;
   platform?: string;
@@ -50,9 +52,6 @@ const STEP_META: Record<InquiryStep, { title: string; label: string }> = {
   contact: { title: "Where should I reply?", label: "Contact" },
 };
 
-const isService = (v: string | null): v is InquiryService =>
-  !!v && SERVICE_OPTIONS.some((o) => o.value === v);
-
 function toPayload(data: FormData): Record<string, unknown> {
   return {
     ...data,
@@ -61,13 +60,28 @@ function toPayload(data: FormData): Record<string, unknown> {
   };
 }
 
-export function InquiryForm({ privacyHref }: { privacyHref: string }) {
+type FormData = InquiryFormData;
+
+export function InquiryForm({
+  privacyHref,
+  serviceOptions,
+  initial,
+  resumeToken,
+  turnstileSiteKey,
+}: {
+  privacyHref: string;
+  serviceOptions: ServiceOption[];
+  /** Answers restored from a saved draft (resume link). */
+  initial?: Partial<FormData>;
+  resumeToken?: string;
+  turnstileSiteKey?: string;
+}) {
   const searchParams = useSearchParams();
   const preselected = searchParams.get("service");
+  const isService = (v: string | null | undefined): v is InquiryService =>
+    !!v && serviceOptions.some((o) => o.value === v);
 
-  const [step, setStep] = useState(0);
   const [data, setData] = useState<FormData>(() => ({
-    service: isService(preselected) ? preselected : undefined,
     websiteUrl: "",
     description: "",
     currency: "USD",
@@ -75,7 +89,22 @@ export function InquiryForm({ privacyHref }: { privacyHref: string }) {
     email: "",
     company: "",
     consent: false,
+    ...initial,
+    service: isService(initial?.service)
+      ? initial.service
+      : isService(preselected)
+        ? preselected
+        : undefined,
   }));
+  // A resumed draft opens at the first step that still needs an answer.
+  const [step, setStep] = useState(() => {
+    if (!initial) return 0;
+    const idx = INQUIRY_STEPS.findIndex(
+      (s) => Object.keys(validateStep(s, toPayload(data))).length > 0,
+    );
+    return idx < 0 ? INQUIRY_STEPS.length - 1 : idx;
+  });
+  const [turnstileToken, setTurnstileToken] = useState<string | undefined>();
   const [errors, setErrors] = useState<FieldErrors>({});
   const [result, setResult] = useState<InquiryActionState>({ status: "idle" });
   const [pending, startTransition] = useTransition();
@@ -115,7 +144,7 @@ export function InquiryForm({ privacyHref }: { privacyHref: string }) {
 
   function submit() {
     if (!meta.current || pending) return;
-    const envelope = { ...meta.current, hp, data: toPayload(data) };
+    const envelope = { ...meta.current, hp, turnstileToken, resumeToken, data: toPayload(data) };
     startTransition(async () => {
       const res = await submitInquiryAction(envelope);
       if (res.status === "invalid") {
@@ -228,6 +257,24 @@ export function InquiryForm({ privacyHref }: { privacyHref: string }) {
             <strong>not</strong> been sent. Please try again later.
           </p>
         )}
+        {result.status === "rate_limited" && (
+          <p
+            role="alert"
+            className="mt-4 rounded-2xl border border-ink/15 bg-paper px-4 py-3 text-sm"
+          >
+            You&rsquo;ve sent several enquiries in a short time, so this one was{" "}
+            <strong>not</strong> sent. Please wait a few minutes and try again.
+          </p>
+        )}
+        {result.status === "verification_failed" && (
+          <p
+            role="alert"
+            className="mt-4 rounded-2xl border border-ink/15 bg-paper px-4 py-3 text-sm"
+          >
+            We couldn&rsquo;t verify the security check, so your enquiry was <strong>not</strong>{" "}
+            sent. Please try again.
+          </p>
+        )}
         {result.status === "error" && (
           <p
             role="alert"
@@ -243,7 +290,7 @@ export function InquiryForm({ privacyHref }: { privacyHref: string }) {
               name="service"
               legend="Service"
               hideLegend
-              options={SERVICE_OPTIONS}
+              options={serviceOptions}
               columns="grid-cols-2 lg:grid-cols-3"
               value={data.service}
               onChange={(v) => update("service", v as InquiryService)}
@@ -287,7 +334,7 @@ export function InquiryForm({ privacyHref }: { privacyHref: string }) {
                 autoComplete="url"
                 placeholder="example.com"
               />
-              {service !== "website-design-development" && service !== "not-sure" && (
+              {service !== "website-design-development" && service !== NOT_SURE && (
                 <ChoiceGroup
                   name="platform"
                   legend="What is it built with?"
@@ -421,6 +468,12 @@ export function InquiryForm({ privacyHref }: { privacyHref: string }) {
           </div>
         </div>
 
+        {last && turnstileSiteKey && (
+          <div className="mt-6">
+            <Turnstile siteKey={turnstileSiteKey} onToken={setTurnstileToken} />
+          </div>
+        )}
+
         <div className="mt-10 flex flex-col-reverse gap-3 border-t border-ink/10 pt-6 sm:flex-row sm:items-center sm:justify-between">
           {step > 0 ? (
             <Button
@@ -445,6 +498,132 @@ export function InquiryForm({ privacyHref }: { privacyHref: string }) {
           </Button>
         </div>
       </form>
+      {step > 0 && (
+        <div className="lg:col-start-2">
+          <SaveForLater data={data} meta={meta} privacyHref={privacyHref} />
+        </div>
+      )}
     </div>
+  );
+}
+
+/**
+ * Optional "save and finish later". Nothing typed into the form is stored
+ * until the visitor opens this, gives an email address and ticks the consent box.
+ */
+function SaveForLater({
+  data,
+  meta,
+  privacyHref,
+}: {
+  data: FormData;
+  meta: React.RefObject<{ startedAt: number; idempotencyKey: string } | null>;
+  privacyHref: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const [name, setName] = useState(data.name);
+  const [email, setEmail] = useState(data.email);
+  const [consent, setConsent] = useState(false);
+  const [state, setState] = useState<DraftActionState>({ status: "idle" });
+  const [pending, startTransition] = useTransition();
+
+  if (state.status === "saved") {
+    return (
+      <p role="status" className="rounded-2xl border border-ink/10 bg-white px-5 py-4 text-sm">
+        Saved. A link to finish your enquiry is on its way to{" "}
+        <strong>{state.email || email}</strong>. It works once and expires in 14 days.
+      </p>
+    );
+  }
+
+  if (!open) {
+    return (
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        className="text-sm text-graphite underline underline-offset-4 hover:text-ink"
+      >
+        Not ready to finish? Save and finish later
+      </button>
+    );
+  }
+
+  const errors = state.status === "invalid" ? state.errors : {};
+  return (
+    <section
+      aria-labelledby="save-later-title"
+      className="rounded-[var(--radius-card)] border border-ink/10 bg-white p-5 sm:p-6"
+    >
+      <h3 id="save-later-title" className="text-lg font-medium">
+        Save and finish later
+      </h3>
+      <p className="mt-1.5 text-sm text-graphite">
+        I&rsquo;ll store your answers so far and email you a link to finish. Unfinished enquiries
+        are deleted automatically after 90 days, and you won&rsquo;t be added to any mailing list.
+      </p>
+      <div className="mt-4 grid gap-4 sm:grid-cols-2">
+        <TextField
+          name="draftName"
+          label="Your name"
+          value={name}
+          onChange={setName}
+          error={errors.name}
+          autoComplete="name"
+        />
+        <TextField
+          name="draftEmail"
+          label="Email address"
+          type="email"
+          value={email}
+          onChange={setEmail}
+          error={errors.email}
+          autoComplete="email"
+        />
+      </div>
+      <div className="mt-4">
+        <Checkbox
+          name="draftConsent"
+          checked={consent}
+          onChange={setConsent}
+          error={errors.consent}
+        >
+          Store my answers and email me a link to finish this enquiry, as described in the{" "}
+          <Link href={privacyHref} className="text-ink underline underline-offset-2">
+            privacy policy
+          </Link>
+          .
+        </Checkbox>
+      </div>
+      {["rate_limited", "error", "unavailable", "already_submitted"].includes(state.status) && (
+        <p role="alert" className="mt-4 text-sm text-danger">
+          {state.status === "already_submitted"
+            ? "This enquiry has already been sent."
+            : state.status === "rate_limited"
+              ? "Too many attempts. Please wait a few minutes and try again."
+              : "Your answers couldn’t be saved. Please try again."}
+        </p>
+      )}
+      <div className="mt-5 flex flex-wrap gap-2">
+        <Button
+          disabled={pending}
+          onClick={() =>
+            startTransition(async () => {
+              if (!meta.current) return;
+              setState(
+                await saveInquiryDraftAction({
+                  ...meta.current,
+                  data: { ...toPayload(data), name, email, consent: consent || undefined },
+                }),
+              );
+            })
+          }
+        >
+          {pending ? "Saving…" : "Save and email me a link"}
+        </Button>
+        <Button variant="ghost" onClick={() => setOpen(false)} disabled={pending}>
+          Cancel
+        </Button>
+      </div>
+    </section>
   );
 }

@@ -13,4 +13,5 @@ export default function setup() {
   process.env.NEXT_PUBLIC_SUPABASE_URL = status.API_URL;
   process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY = status.PUBLISHABLE_KEY;
   process.env.SUPABASE_SECRET_KEY = status.SECRET_KEY;
+  process.env.MAILPIT_URL = status.MAILPIT_URL ?? status.INBUCKET_URL;
 }

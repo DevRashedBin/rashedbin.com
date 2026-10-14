@@ -17,12 +17,12 @@ export const site = {
   jobTitle: "Website Designer & Developer",
   /** Markets served — used for `areaServed` in structured data. */
   areaServed: ["Bangladesh", "United Kingdom", "United States", "European Union"],
-  /** Public contact email. Empty until confirmed; the enquiry form is the primary channel. */
-  contactEmail: "",
+  /** Public contact email (confirmed by the business owner). */
+  contactEmail: "hello@rashedbin.com",
   /** Verified profile URLs (LinkedIn, GitHub, etc.). Empty until provided. */
   sameAs: [] as string[],
   /** Version of the privacy notice that consent records reference. */
-  privacyNoticeVersion: "2026-10-13",
+  privacyNoticeVersion: "2026-10-15",
   /** Version of the terms of service. */
   termsVersion: "2026-10-13",
 } as const;

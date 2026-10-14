@@ -23,6 +23,40 @@ export type Database = {
   };
   public: {
     Tables: {
+      activities: {
+        Row: {
+          actor_id: string | null;
+          created_at: string;
+          data: NonNullable<Json>;
+          id: string;
+          kind: string;
+          subject_id: string;
+          subject_type: string;
+          summary: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          actor_id?: string | null;
+          created_at?: string;
+          data?: NonNullable<Json>;
+          id?: string;
+          kind: string;
+          subject_id: string;
+          subject_type: string;
+          summary: string;
+        };
+        Update: {
+          actor_id?: string | null;
+          created_at?: string;
+          data?: NonNullable<Json>;
+          id?: string;
+          kind?: string;
+          subject_id?: string;
+          subject_type?: string;
+          summary?: string;
+        };
+        Relationships: [];
+      };
       audit_log: {
         Row: {
           action: string;
@@ -64,6 +98,7 @@ export type Database = {
         Row: {
           address: string | null;
           business_name: string;
+          consultation_url: string | null;
           contact_email: string | null;
           default_currency: string;
           default_payment_terms_days: number;
@@ -72,6 +107,7 @@ export type Database = {
           invoice_footer: string | null;
           invoice_prefix: string;
           legal_name: string | null;
+          notification_email: string | null;
           number_padding: number;
           phone: string | null;
           project_prefix: string;
@@ -84,6 +120,7 @@ export type Database = {
         Insert: {
           address?: string | null;
           business_name?: string;
+          consultation_url?: string | null;
           contact_email?: string | null;
           default_currency?: string;
           default_payment_terms_days?: number;
@@ -92,6 +129,7 @@ export type Database = {
           invoice_footer?: string | null;
           invoice_prefix?: string;
           legal_name?: string | null;
+          notification_email?: string | null;
           number_padding?: number;
           phone?: string | null;
           project_prefix?: string;
@@ -103,6 +141,7 @@ export type Database = {
         Update: {
           address?: string | null;
           business_name?: string;
+          consultation_url?: string | null;
           contact_email?: string | null;
           default_currency?: string;
           default_payment_terms_days?: number;
@@ -111,6 +150,7 @@ export type Database = {
           invoice_footer?: string | null;
           invoice_prefix?: string;
           legal_name?: string | null;
+          notification_email?: string | null;
           number_padding?: number;
           phone?: string | null;
           project_prefix?: string;
@@ -203,6 +243,194 @@ export type Database = {
         };
         Relationships: [];
       };
+      consent_records: {
+        Row: {
+          granted_at: string;
+          id: string;
+          ip_hash: string | null;
+          lead_id: string;
+          notice_version: string;
+          purpose: string;
+          user_agent: string | null;
+          withdrawn_at: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          granted_at?: string;
+          id?: string;
+          ip_hash?: string | null;
+          lead_id: string;
+          notice_version: string;
+          purpose: string;
+          user_agent?: string | null;
+          withdrawn_at?: string | null;
+        };
+        Update: {
+          granted_at?: string;
+          id?: string;
+          ip_hash?: string | null;
+          lead_id?: string;
+          notice_version?: string;
+          purpose?: string;
+          user_agent?: string | null;
+          withdrawn_at?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "consent_records_lead_id_fkey";
+            columns: ["lead_id"];
+            isOneToOne: false;
+            referencedRelation: "leads";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      email_events: {
+        Row: {
+          email_message_id: string | null;
+          id: string;
+          payload: NonNullable<Json>;
+          provider_event_id: string;
+          received_at: string;
+          type: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          email_message_id?: string | null;
+          id?: string;
+          payload: NonNullable<Json>;
+          provider_event_id: string;
+          received_at?: string;
+          type: string;
+        };
+        Update: {
+          email_message_id?: string | null;
+          id?: string;
+          payload?: NonNullable<Json>;
+          provider_event_id?: string;
+          received_at?: string;
+          type?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "email_events_email_message_id_fkey";
+            columns: ["email_message_id"];
+            isOneToOne: false;
+            referencedRelation: "email_messages";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      email_messages: {
+        Row: {
+          attempts: number;
+          body_text: string;
+          created_at: string;
+          created_by: string | null;
+          delivery_status: string;
+          from_email: string;
+          id: string;
+          idempotency_key: string;
+          next_attempt_at: string | null;
+          provider: string | null;
+          provider_message_id: string | null;
+          related_id: string | null;
+          related_type: string | null;
+          reply_to: string | null;
+          sent_at: string | null;
+          status: string;
+          status_reason: string | null;
+          subject: string;
+          template_key: string | null;
+          to_email: string;
+          updated_at: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          attempts?: number;
+          body_text: string;
+          created_at?: string;
+          created_by?: string | null;
+          delivery_status?: string;
+          from_email: string;
+          id?: string;
+          idempotency_key: string;
+          next_attempt_at?: string | null;
+          provider?: string | null;
+          provider_message_id?: string | null;
+          related_id?: string | null;
+          related_type?: string | null;
+          reply_to?: string | null;
+          sent_at?: string | null;
+          status?: string;
+          status_reason?: string | null;
+          subject: string;
+          template_key?: string | null;
+          to_email: string;
+          updated_at?: string;
+        };
+        Update: {
+          attempts?: number;
+          body_text?: string;
+          created_at?: string;
+          created_by?: string | null;
+          delivery_status?: string;
+          from_email?: string;
+          id?: string;
+          idempotency_key?: string;
+          next_attempt_at?: string | null;
+          provider?: string | null;
+          provider_message_id?: string | null;
+          related_id?: string | null;
+          related_type?: string | null;
+          reply_to?: string | null;
+          sent_at?: string | null;
+          status?: string;
+          status_reason?: string | null;
+          subject?: string;
+          template_key?: string | null;
+          to_email?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      email_templates: {
+        Row: {
+          body: string;
+          category: string;
+          description: string | null;
+          is_system: boolean;
+          key: string;
+          name: string;
+          subject: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          body: string;
+          category: string;
+          description?: string | null;
+          is_system?: boolean;
+          key: string;
+          name: string;
+          subject: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          body?: string;
+          category?: string;
+          description?: string | null;
+          is_system?: boolean;
+          key?: string;
+          name?: string;
+          subject?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [];
+      };
       faqs: {
         Row: {
           answer: string;
@@ -240,6 +468,42 @@ export type Database = {
         };
         Relationships: [];
       };
+      inquiry_resume_tokens: {
+        Row: {
+          created_at: string;
+          expires_at: string;
+          id: string;
+          lead_id: string;
+          token_hash: string;
+          used_at: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          expires_at: string;
+          id?: string;
+          lead_id: string;
+          token_hash: string;
+          used_at?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          expires_at?: string;
+          id?: string;
+          lead_id?: string;
+          token_hash?: string;
+          used_at?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "inquiry_resume_tokens_lead_id_fkey";
+            columns: ["lead_id"];
+            isOneToOne: false;
+            referencedRelation: "leads";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       internal_notes: {
         Row: {
           author_id: string | null;
@@ -268,6 +532,97 @@ export type Database = {
         };
         Relationships: [];
       };
+      leads: {
+        Row: {
+          anonymised_at: string | null;
+          client_id: string | null;
+          company: string | null;
+          created_at: string;
+          description: string;
+          details: NonNullable<Json>;
+          email: string;
+          id: string;
+          idempotency_key: string | null;
+          ip_hash: string | null;
+          last_activity_at: string;
+          name: string;
+          priority: string;
+          ref: string;
+          service_label: string | null;
+          service_slug: string | null;
+          source: string;
+          stage_key: string;
+          submitted_at: string | null;
+          updated_at: string;
+          user_agent: string | null;
+          website_url: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          anonymised_at?: string | null;
+          client_id?: string | null;
+          company?: string | null;
+          created_at?: string;
+          description?: string;
+          details?: NonNullable<Json>;
+          email: string;
+          id?: string;
+          idempotency_key?: string | null;
+          ip_hash?: string | null;
+          last_activity_at?: string;
+          name: string;
+          priority?: string;
+          ref: string;
+          service_label?: string | null;
+          service_slug?: string | null;
+          source?: string;
+          stage_key?: string;
+          submitted_at?: string | null;
+          updated_at?: string;
+          user_agent?: string | null;
+          website_url?: string | null;
+        };
+        Update: {
+          anonymised_at?: string | null;
+          client_id?: string | null;
+          company?: string | null;
+          created_at?: string;
+          description?: string;
+          details?: NonNullable<Json>;
+          email?: string;
+          id?: string;
+          idempotency_key?: string | null;
+          ip_hash?: string | null;
+          last_activity_at?: string;
+          name?: string;
+          priority?: string;
+          ref?: string;
+          service_label?: string | null;
+          service_slug?: string | null;
+          source?: string;
+          stage_key?: string;
+          submitted_at?: string | null;
+          updated_at?: string;
+          user_agent?: string | null;
+          website_url?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "leads_client_id_fkey";
+            columns: ["client_id"];
+            isOneToOne: false;
+            referencedRelation: "clients";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "leads_stage_key_fkey";
+            columns: ["stage_key"];
+            isOneToOne: false;
+            referencedRelation: "pipeline_stages";
+            referencedColumns: ["key"];
+          },
+        ];
+      };
       number_sequences: {
         Row: {
           last_value: number;
@@ -284,6 +639,34 @@ export type Database = {
           last_value?: number;
           scope?: string;
           year?: number;
+        };
+        Relationships: [];
+      };
+      pipeline_stages: {
+        Row: {
+          is_system: boolean;
+          key: string;
+          kind: string;
+          label: string;
+          position: number;
+          updated_at: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          is_system?: boolean;
+          key: string;
+          kind?: string;
+          label: string;
+          position?: number;
+          updated_at?: string;
+        };
+        Update: {
+          is_system?: boolean;
+          key?: string;
+          kind?: string;
+          label?: string;
+          position?: number;
+          updated_at?: string;
         };
         Relationships: [];
       };
@@ -309,6 +692,130 @@ export type Database = {
           id?: string;
           role?: string;
           updated_at?: string;
+        };
+        Relationships: [];
+      };
+      project_statuses: {
+        Row: {
+          client_label: string;
+          is_terminal: boolean;
+          key: string;
+          label: string;
+          notify_client_by_default: boolean;
+          position: number;
+        };
+        ComputedFields: never;
+        Insert: {
+          client_label: string;
+          is_terminal?: boolean;
+          key: string;
+          label: string;
+          notify_client_by_default?: boolean;
+          position?: number;
+        };
+        Update: {
+          client_label?: string;
+          is_terminal?: boolean;
+          key?: string;
+          label?: string;
+          notify_client_by_default?: boolean;
+          position?: number;
+        };
+        Relationships: [];
+      };
+      projects: {
+        Row: {
+          client_id: string;
+          created_at: string;
+          created_by: string | null;
+          currency: string;
+          description: string | null;
+          id: string;
+          lead_id: string | null;
+          ref: string;
+          service_slug: string | null;
+          start_date: string | null;
+          status_key: string;
+          target_date: string | null;
+          title: string;
+          updated_at: string;
+          value_minor: number | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          client_id: string;
+          created_at?: string;
+          created_by?: string | null;
+          currency?: string;
+          description?: string | null;
+          id?: string;
+          lead_id?: string | null;
+          ref: string;
+          service_slug?: string | null;
+          start_date?: string | null;
+          status_key?: string;
+          target_date?: string | null;
+          title: string;
+          updated_at?: string;
+          value_minor?: number | null;
+        };
+        Update: {
+          client_id?: string;
+          created_at?: string;
+          created_by?: string | null;
+          currency?: string;
+          description?: string | null;
+          id?: string;
+          lead_id?: string | null;
+          ref?: string;
+          service_slug?: string | null;
+          start_date?: string | null;
+          status_key?: string;
+          target_date?: string | null;
+          title?: string;
+          updated_at?: string;
+          value_minor?: number | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "projects_client_id_fkey";
+            columns: ["client_id"];
+            isOneToOne: false;
+            referencedRelation: "clients";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "projects_lead_id_fkey";
+            columns: ["lead_id"];
+            isOneToOne: true;
+            referencedRelation: "leads";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "projects_status_key_fkey";
+            columns: ["status_key"];
+            isOneToOne: false;
+            referencedRelation: "project_statuses";
+            referencedColumns: ["key"];
+          },
+        ];
+      };
+      rate_limits: {
+        Row: {
+          bucket: string;
+          count: number;
+          window_start: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          bucket: string;
+          count?: number;
+          window_start: string;
+        };
+        Update: {
+          bucket?: string;
+          count?: number;
+          window_start?: string;
         };
         Relationships: [];
       };
@@ -396,10 +903,70 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
+      check_rate_limit: {
+        Args: { p_bucket: string; p_limit: number; p_window_seconds: number };
+        Returns: boolean;
+      };
+      convert_lead_to_project: {
+        Args: { p_client_id?: string; p_lead_id: string; p_status_key?: string; p_title: string };
+        Returns: {
+          client_id: string;
+          created: boolean;
+          project_id: string;
+          project_ref: string;
+        }[];
+      };
+      format_business_number: { Args: { p_prefix: string; p_scope: string }; Returns: string };
       is_admin: { Args: Record<PropertyKey, never>; Returns: boolean };
       is_client_member: { Args: { target_client_id: string }; Returns: boolean };
       next_sequence_value: { Args: { p_scope: string; p_year: number }; Returns: number };
+      purge_expired_data: { Args: Record<PropertyKey, never>; Returns: Json };
       replace_general_faqs: { Args: { items: Json }; Returns: undefined };
+      save_inquiry_draft: {
+        Args: {
+          p_company?: string;
+          p_description?: string;
+          p_details?: Json;
+          p_email: string;
+          p_idempotency_key: string;
+          p_ip_hash?: string;
+          p_name: string;
+          p_notice_version: string;
+          p_service_label?: string;
+          p_service_slug?: string;
+          p_token_expires_at: string;
+          p_token_hash: string;
+          p_user_agent?: string;
+          p_website_url?: string;
+        };
+        Returns: {
+          lead_id: string;
+          lead_ref: string;
+          outcome: string;
+        }[];
+      };
+      submit_inquiry: {
+        Args: {
+          p_company?: string;
+          p_description: string;
+          p_details?: Json;
+          p_email: string;
+          p_idempotency_key: string;
+          p_ip_hash?: string;
+          p_name: string;
+          p_notice_version: string;
+          p_resume_token_hash?: string;
+          p_service_label?: string;
+          p_service_slug?: string;
+          p_user_agent?: string;
+          p_website_url?: string;
+        };
+        Returns: {
+          lead_id: string;
+          lead_ref: string;
+          outcome: string;
+        }[];
+      };
     };
     Enums: {
       [_ in never]: never;

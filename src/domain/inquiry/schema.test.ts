@@ -84,7 +84,7 @@ describe("inquirySchema", () => {
   });
 
   it("rejects unknown services, currencies and budgets", () => {
-    expect(inquirySchema.safeParse({ ...valid, service: "seo-guaranteed" }).success).toBe(false);
+    expect(inquirySchema.safeParse({ ...valid, service: "Not a slug!" }).success).toBe(false);
     expect(inquirySchema.safeParse({ ...valid, currency: "JPY" }).success).toBe(false);
     expect(inquirySchema.safeParse({ ...valid, budget: "b9" }).success).toBe(false);
   });

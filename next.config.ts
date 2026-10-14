@@ -2,6 +2,11 @@ import type { NextConfig } from "next";
 
 const isDev = process.env.NODE_ENV !== "production";
 
+// Cloudflare Turnstile on the enquiry form, only when configured.
+const turnstile = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY
+  ? " https://challenges.cloudflare.com"
+  : "";
+
 /**
  * Baseline Content-Security-Policy for the statically prerendered public site.
  * Nonce-based CSP requires dynamic rendering, so the public pages use the
@@ -10,11 +15,12 @@ const isDev = process.env.NODE_ENV !== "production";
  */
 const csp = [
   "default-src 'self'",
-  `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""}`,
+  `script-src 'self' 'unsafe-inline'${turnstile}${isDev ? " 'unsafe-eval'" : ""}`,
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob:",
   "font-src 'self'",
-  "connect-src 'self'",
+  `connect-src 'self'${turnstile}`,
+  `frame-src${turnstile || " 'none'"}`,
   "frame-ancestors 'none'",
   "base-uri 'self'",
   "form-action 'self'",
@@ -57,6 +63,15 @@ const nextConfig: NextConfig = {
       {
         source: "/(admin|portal|auth)/:path*",
         headers: securityHeaders.filter((h) => h.key !== "Content-Security-Policy"),
+      },
+      {
+        // Resume links carry a secret token: never leak it via Referer.
+        source: "/start-a-project/resume/:token",
+        headers: [
+          { key: "Referrer-Policy", value: "no-referrer" },
+          { key: "X-Robots-Tag", value: "noindex, nofollow" },
+          { key: "Cache-Control", value: "private, no-store" },
+        ],
       },
       {
         // Private areas must never be indexed. Access control is enforced by

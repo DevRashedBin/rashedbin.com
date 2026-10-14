@@ -48,7 +48,7 @@ const sections: LegalSection[] = [
   {
     heading: "Saved and incomplete enquiries",
     body: [
-      "Nothing you type into the enquiry form is sent to me until you submit it. If an option to save an enquiry and finish it later is offered, it only stores your details after you choose to save and confirm that I may contact you about it. Saved, unfinished enquiries are deleted automatically after 90 days.",
+      "Nothing you type into the enquiry form is sent to me until you submit it. If an option to save an enquiry and finish it later is offered, it only stores your details after you choose to save and confirm that I may contact you about it. The emailed link to finish works once and expires after 14 days. Saved, unfinished enquiries are deleted automatically after 90 days.",
     ],
   },
   {

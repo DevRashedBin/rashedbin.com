@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 import { faqSchema, serviceFromRow, type Service } from "@/domain/content/service";
-import { SERVICE_OPTIONS } from "@/domain/inquiry/schema";
 import { anonClient } from "../helpers/supabase";
 
 /** Integrity rules for the published website content stored in the database. */
@@ -37,11 +36,6 @@ describe("published service content", () => {
       expect(s.related).not.toContain(s.slug);
       for (const r of s.related) expect(slugs.has(r), `${s.slug} → ${r}`).toBe(true);
     }
-  });
-
-  it("is selectable in the enquiry form", async () => {
-    const formValues = SERVICE_OPTIONS.map((o) => o.value as string);
-    for (const s of await publishedServices()) expect(formValues).toContain(s.slug);
   });
 
   it("makes no ranking or result guarantees", async () => {

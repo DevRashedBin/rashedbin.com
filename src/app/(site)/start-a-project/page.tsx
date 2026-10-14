@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { InquiryForm } from "@/components/forms/inquiry-form";
+import { inquiryServiceOptions } from "./service-options";
 import { Container } from "@/components/ui/container";
 import { SectionLabel } from "@/components/ui/section-label";
 import { pageMetadata } from "@/lib/seo";
@@ -18,7 +19,8 @@ const nextSteps = [
   { title: "You get a clear proposal", body: "Scope, timeline and a fixed quote — no obligation." },
 ];
 
-export default function StartProjectPage() {
+export default async function StartProjectPage() {
+  const serviceOptions = await inquiryServiceOptions();
   return (
     <section className="pt-10 pb-16 sm:pt-14 lg:pb-24">
       <Container>
@@ -40,7 +42,11 @@ export default function StartProjectPage() {
               <div className="min-h-[520px] rounded-[var(--radius-panel)] border border-ink/10 bg-white" />
             }
           >
-            <InquiryForm privacyHref="/privacy" />
+            <InquiryForm
+              privacyHref="/privacy"
+              serviceOptions={serviceOptions}
+              turnstileSiteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || undefined}
+            />
           </Suspense>
 
           <aside className="self-start rounded-[var(--radius-panel)] bg-ink p-7 text-paper">

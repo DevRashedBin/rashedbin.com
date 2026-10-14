@@ -18,6 +18,19 @@ export const businessSettingsSchema = z.object({
     .max(254)
     .refine((v) => v === "" || z.email().safeParse(v).success, "Enter a valid email address.")
     .transform((v) => (v === "" ? null : v)),
+  notificationEmail: z
+    .string()
+    .trim()
+    .toLowerCase()
+    .max(254)
+    .refine((v) => v === "" || z.email().safeParse(v).success, "Enter a valid email address.")
+    .transform((v) => (v === "" ? null : v)),
+  consultationUrl: z
+    .string()
+    .trim()
+    .max(300)
+    .refine((v) => v === "" || /^https:\/\/[^\s]+\.[^\s]+$/.test(v), "Use a full https:// link.")
+    .transform((v) => (v === "" ? null : v)),
   phone: optional(50),
   address: optional(1000),
   website: optional(300),
