@@ -117,7 +117,7 @@ export default async function LeadPage({ params, searchParams }: PageProps<"/adm
                   Follow up
                 </ButtonLink>
                 {project ? (
-                  <ButtonLink href={`/admin/clients/${project.client_id}`}>
+                  <ButtonLink href={`/admin/projects/${project.id}`}>
                     Project {project.ref}
                   </ButtonLink>
                 ) : (

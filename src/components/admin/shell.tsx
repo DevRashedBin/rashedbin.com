@@ -5,7 +5,7 @@ import { AdminNavLinks, type AdminNavItem } from "./nav-links";
 const nav: AdminNavItem[] = [
   { href: "/admin", label: "Overview" },
   { href: "/admin/leads", label: "Leads" },
-  { href: "/admin/projects", label: "Projects", phase: 5 },
+  { href: "/admin/projects", label: "Projects" },
   { href: "/admin/clients", label: "Clients" },
   { href: "/admin/invoices", label: "Invoices", phase: 6 },
   { href: "/admin/payments", label: "Payments", phase: 6 },

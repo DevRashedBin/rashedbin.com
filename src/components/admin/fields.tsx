@@ -1,3 +1,6 @@
+"use client";
+
+import { useId } from "react";
 import { cn } from "@/lib/cn";
 
 const control =
@@ -54,7 +57,8 @@ export function Input({
   required,
   ...props
 }: Common & Omit<React.ComponentProps<"input">, "name">) {
-  const id = `f-${name}`;
+  // Unique per instance: several forms on one page can share a field name.
+  const id = `f-${name}-${useId().replace(/:/g, "")}`;
   return (
     <Wrapper
       id={id}
@@ -87,7 +91,8 @@ export function Textarea({
   rows = 4,
   ...props
 }: Common & Omit<React.ComponentProps<"textarea">, "name">) {
-  const id = `f-${name}`;
+  // Unique per instance: several forms on one page can share a field name.
+  const id = `f-${name}-${useId().replace(/:/g, "")}`;
   return (
     <Wrapper
       id={id}
@@ -128,7 +133,8 @@ export function Select({
   Omit<React.ComponentProps<"select">, "name"> & {
     options: readonly { value: string; label: string }[];
   }) {
-  const id = `f-${name}`;
+  // Unique per instance: several forms on one page can share a field name.
+  const id = `f-${name}-${useId().replace(/:/g, "")}`;
   return (
     <Wrapper
       id={id}

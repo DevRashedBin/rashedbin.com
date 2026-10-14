@@ -5,7 +5,14 @@ import { ConfirmAction } from "@/components/admin/confirm-action";
 import { PageHeader, Panel } from "@/components/admin/shell";
 import { requireAdmin } from "@/server/auth";
 import { createSupabaseServerClient } from "@/server/supabase/server";
-import { addClientNoteAction, setClientArchivedAction, updateClientAction } from "../actions";
+import { clientMemberEmails } from "@/server/portal-invites";
+import {
+  addClientNoteAction,
+  revokeClientUserAction,
+  setClientArchivedAction,
+  updateClientAction,
+} from "../actions";
+import { InviteForm } from "./invite-form";
 import { ClientForm } from "../client-form";
 import { NoteForm } from "@/components/admin/note-form";
 
@@ -35,7 +42,7 @@ export default async function ClientDetailPage({
       .eq("subject_type", "client")
       .eq("subject_id", id)
       .order("created_at", { ascending: false }),
-    supabase.from("client_members").select("user_id, created_at").eq("client_id", id),
+    clientMemberEmails(id).then((data) => ({ data })),
     supabase
       .from("projects")
       .select("id, ref, title, status_key, created_at")
@@ -141,16 +148,26 @@ export default async function ClientDetailPage({
             {projects?.length ? (
               <ul className="flex flex-col gap-2 text-sm">
                 {projects.map((p) => (
-                  <li key={p.id} className="rounded-xl bg-paper px-3 py-2">
-                    <span className="font-mono text-xs text-stone">{p.ref}</span>
-                    <span className="block">{p.title}</span>
+                  <li key={p.id}>
+                    <Link
+                      href={`/admin/projects/${p.id}`}
+                      className="block rounded-xl bg-paper px-3 py-2 hover:underline"
+                    >
+                      <span className="font-mono text-xs text-stone">{p.ref}</span>
+                      <span className="block">{p.title}</span>
+                    </Link>
                   </li>
                 ))}
               </ul>
             ) : (
               <p className="text-sm text-stone">No projects yet.</p>
             )}
-            <p className="mt-3 text-xs text-stone">Full project management arrives in Phase 5.</p>
+            <Link
+              href={`/admin/projects/new?clientId=${client.id}`}
+              className="mt-3 inline-block text-sm underline underline-offset-2"
+            >
+              New project for this client
+            </Link>
           </Panel>
           {leads?.length ? (
             <Panel title="Enquiries">
@@ -166,13 +183,34 @@ export default async function ClientDetailPage({
               </ul>
             </Panel>
           ) : null}
-          <Panel title="Portal access">
-            <p className="text-sm text-graphite">
-              {members?.length
-                ? `${members.length} portal user${members.length === 1 ? "" : "s"} linked.`
-                : "No portal users yet."}{" "}
-              Inviting clients to the portal arrives with projects in Phase 5.
-            </p>
+          <Panel title="Client area access">
+            {members?.length ? (
+              <ul className="mb-4 flex flex-col gap-2 text-sm">
+                {members.map((m) => (
+                  <li
+                    key={m.userId}
+                    className="flex items-center justify-between gap-3 rounded-xl bg-paper px-3 py-2"
+                  >
+                    <span className="min-w-0 truncate">{m.email}</span>
+                    <ConfirmAction
+                      action={revokeClientUserAction}
+                      hidden={{ clientId: client.id, userId: m.userId, email: m.email }}
+                      label="Remove"
+                      title="Remove client area access?"
+                      body={`${m.email} will no longer be able to see this client's projects or invoices.`}
+                      confirmLabel="Remove access"
+                    />
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="mb-4 text-sm text-stone">Nobody has access to the client area yet.</p>
+            )}
+            <InviteForm
+              clientId={client.id}
+              defaultName={members?.length ? "" : (client.contact_name ?? "")}
+              defaultEmail={members?.length ? "" : client.billing_email}
+            />
           </Panel>
         </div>
       </div>

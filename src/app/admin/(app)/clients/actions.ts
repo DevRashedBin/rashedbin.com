@@ -7,6 +7,7 @@ import { submittedValues, type ActionState } from "@/components/admin/action-sta
 import { clientFormData, clientSchema, clientToRow } from "@/domain/clients/schema";
 import { toFieldErrors } from "@/domain/inquiry/schema";
 import { assertAdmin } from "@/server/auth";
+import { inviteClientUser } from "@/server/portal-invites";
 import { createSupabaseServerClient } from "@/server/supabase/server";
 
 const DUPLICATE_EMAIL = "An active client already uses this billing email.";
@@ -135,4 +136,67 @@ export async function addClientNoteAction(
   if (error) return { status: "error", message: "The note could not be saved." };
   refresh();
   return { status: "success", message: "Note added." };
+}
+
+// ── Client area access ──────────────────────────────────────────────────────
+
+const inviteInput = z.object({
+  clientId: z.uuid(),
+  name: z.string().trim().min(1, "Enter the person's name.").max(200),
+  email: z
+    .string()
+    .trim()
+    .toLowerCase()
+    .max(254)
+    .pipe(z.email({ error: "Enter a valid email address." })),
+});
+
+export async function inviteClientUserAction(
+  _prev: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  const user = await assertAdmin();
+  const parsed = inviteInput.safeParse({
+    clientId: formData.get("clientId"),
+    name: formData.get("name"),
+    email: formData.get("email"),
+  });
+  if (!parsed.success) {
+    return {
+      status: "error",
+      errors: toFieldErrors(parsed.error),
+      values: submittedValues(formData),
+    };
+  }
+  const result = await inviteClientUser({ ...parsed.data, actorId: user.id });
+  if (result.status === "refused")
+    return { status: "error", message: result.reason, values: submittedValues(formData) };
+  const emailNote =
+    result.emailStatus === "sent"
+      ? "Invitation email sent."
+      : result.emailStatus === "suppressed"
+        ? "The invitation email was recorded but not sent (development safety mode)."
+        : "The invitation email failed and will be retried.";
+  refresh();
+  return {
+    status: "success",
+    message: `${result.status === "already_member" ? `${parsed.data.email} already has access.` : `${parsed.data.email} now has access.`} ${emailNote}`,
+  };
+}
+
+export async function revokeClientUserAction(formData: FormData) {
+  const user = await assertAdmin();
+  const clientId = z.uuid().parse(formData.get("clientId"));
+  const userId = z.uuid().parse(formData.get("userId"));
+  const email = String(formData.get("email") ?? "");
+  const supabase = await createSupabaseServerClient();
+  await supabase.from("client_members").delete().eq("client_id", clientId).eq("user_id", userId);
+  await supabase.from("activities").insert({
+    subject_type: "client",
+    subject_id: clientId,
+    kind: "portal_revoked",
+    summary: `Removed client area access for ${email}`,
+    actor_id: user.id,
+  });
+  refresh();
 }
