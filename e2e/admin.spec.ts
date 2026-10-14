@@ -77,12 +77,16 @@ test("admin manages clients end to end", async ({ page }) => {
   // Typed values survive the failed submission.
   await expect(page.getByLabel(/Client name/)).toHaveValue("Acme Studio");
 
-  await page.getByLabel(/Billing email/).fill(email);
-  await page.getByRole("button", { name: "Create client" }).click();
-  await expect(page.getByText("Client created.")).toBeVisible();
+  // React resets the form just after the error renders; retry if that wipes the new value.
+  await expect(async () => {
+    await page.getByLabel(/Billing email/).fill(email);
+    await page.getByRole("button", { name: "Create client" }).click();
+    await expect(page.getByText("Client created.")).toBeVisible({ timeout: 3_000 });
+  }).toPass();
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Acme Studio");
+  const clientUrl = page.url().split("?")[0];
 
-  await page.getByLabel("Phone").fill("+44 20 7946 0000");
+  await page.getByLabel("Phone").filter({ visible: true }).fill("+44 20 7946 0000");
   await page.getByRole("button", { name: "Save changes" }).click();
   await expect(page.getByText("Client saved.")).toBeVisible();
 
@@ -99,7 +103,8 @@ test("admin manages clients end to end", async ({ page }) => {
 
   // Search, then archive with confirmation.
   await page.goto(`/admin/clients?q=${encodeURIComponent("Acme Studio")}`);
-  await page.getByRole("link", { name: "Acme Studio" }).first().click();
+  await expect(page.getByRole("link", { name: "Acme Studio" }).first()).toBeVisible();
+  await page.goto(clientUrl);
   await page.getByRole("button", { name: "Archive client" }).click();
   await page.getByRole("dialog").getByRole("button", { name: "Archive" }).click();
   await expect(page.getByText("Archived — hidden from active lists.")).toBeVisible();

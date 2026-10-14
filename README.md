@@ -3,8 +3,8 @@
 Website, CRM, client portal and invoicing for **Rashed (Rashedul Islam)** — an independent website
 design, development and optimisation business serving the UK, US, Europe and Bangladesh.
 
-> **Status:** Phases 0–4 complete locally (site, database, auth, admin, CRM, email). Enquiries are
-> stored and emails work against the local inbox; production needs the accounts listed in
+> **Status:** Phases 0–5 complete locally (site, database, auth, admin, CRM, email, projects and
+> client area). Enquiries are stored and emails work against the local inbox; production needs the accounts listed in
 > [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md). See [docs/ROADMAP.md](docs/ROADMAP.md).
 
 ## Stack

@@ -6,8 +6,8 @@
 | 2     | Design system + public website + SEO foundations                                                                                                                            | ✅ Done (copy pending owner review) |
 | 3     | Supabase migrations, RLS + RLS tests, auth (client email code, admin password + TOTP), admin bootstrap script, dashboard, content in the database                           | ✅ Done (local)                     |
 | 4     | Inquiry storage, Turnstile, rate limits, save-and-resume with consent, leads, follow-up templates, email outbox + webhooks, convert to project. **Earliest public launch.** | ✅ Done (local)                     |
-| 5     | Project management UI, milestones, client-visible updates, notification rules, client invites, portal                                                                       | ⏳ Next                             |
-| 6     | Invoices, PDF snapshots, payment methods, partial payments, receipts, overdue job                                                                                           | Planned                             |
+| 5     | Project management UI, milestones, client-visible updates, notification rules, client invites, portal                                                                       | ✅ Done (local)                     |
+| 6     | Invoices, PDF snapshots, payment methods, partial payments, receipts, overdue job                                                                                           | ⏳ Next                             |
 | 7     | Security review, full QA, Lighthouse, backup/restore drill, redirects, DNS cutover, Search Console                                                                          | Planned                             |
 
 Phase 1 was the read-only audit and plan.
@@ -145,4 +145,56 @@ security headers, navigation, keyboard-operable tabs and slider, and form valida
 - Real sending needs a Resend account, the rashedbin.com domain verified (SPF, DKIM, DMARC) and the
   webhook configured — see `docs/DEPLOYMENT.md`. Until then nothing is sent outside this machine.
 - Turnstile needs a Cloudflare site key and secret.
-- Project pages, milestones, client invites and notifications are Phase 5.
+
+## Phase 5 summary
+
+**Built**
+
+- Schema (`20261016090000_projects.sql`): milestones and client-facing project updates, with RLS so
+  a client member reads only client-visible milestones and published updates of their own
+  projects; private notes stay in `internal_notes`. `create_project` (MFA-verified admin, date
+  order checked, reference such as RB-2026-0001), notification defaults in business settings,
+  four system email templates, and a service-role-only user lookup for invitations.
+- Money input parsed with integer arithmetic into minor units (`src/domain/money`).
+- Admin: projects list (status filter, search, overdue flag, milestone progress), manual project
+  creation (optionally preset to a client), project page with value/dates/progress, milestones
+  (add, complete/reopen, show/hide to client, reorder, remove), client updates (publish,
+  unpublish), status changes showing exactly what the client sees, private notes and a timeline of
+  activity and emails. Editable project statuses (client label, default notification). Overview
+  shows active projects, overdue deadlines and deadlines in the next 14 days.
+- Notifications: status changes, published updates and completed milestones email the client only
+  when the checkbox is ticked (defaults come from settings and the status). Recipients are the
+  client's portal members, otherwise the billing email; only client-facing fields are used; sends
+  go through the outbox with idempotency keys, so a double submit emails once.
+- Client invites: the client page grants and removes client-area access and sends a sign-in
+  invitation (passwordless email code). Admin accounts cannot be invited as clients.
+- Portal: projects grouped by client with status, target date and progress; project page with
+  facts, description, visible milestones and published updates. Other clients' projects return 404.
+
+**Tested** (executed locally against Supabase + Mailpit)
+
+- 65 unit tests (new: money parsing/formatting, project schemas, deadlines).
+- 67 database tests (new projects suite: `create_project` reference, MFA and date checks; member
+  sees only their projects, visible milestones and published updates; no internal notes or
+  activity; cannot write; anonymous sees nothing; removing membership removes access at once; user
+  lookup callable by the server only).
+- 200 end-to-end tests across the configured viewports, all passing. New on mobile and laptop: the
+  full lifecycle (create with validation → milestones → invite → private note → update → status
+  change with and without email → milestone completed → exactly the expected four emails to the
+  portal user and none to the billing address → client sees status, value, visible milestone,
+  update and 100% progress, not the hidden milestone or the note → another client's project is
+  404); unpublishing an update and removing access take effect for the client.
+
+**Found and fixed during testing**
+
+- Adding a milestone without a description always failed validation.
+- Form fields on pages with several forms shared element IDs (an accessibility bug); IDs are now
+  unique per field.
+- Test-only: locators made robust to Next.js keeping the previous page mounted but hidden, and to
+  React's form reset racing a very fast re-submission.
+
+**Not done**
+
+- Real client emails still need the Resend setup in `docs/DEPLOYMENT.md`; locally they go to Mailpit.
+- File sharing, client comments/approvals and scheduled reminders are not part of this phase.
+- Next: Phase 6 — invoices, PDFs, payments.

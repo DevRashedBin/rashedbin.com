@@ -73,3 +73,15 @@ code and are selected per service by key (`components/graphics/service-demo.tsx`
   the response with `after()`, so an email failure never affects the stored lead.
 - The service role is used only by intake, the outbox, webhooks and scheduled jobs — each behind
   its own checks. Admin pages use the admin's session and RLS.
+
+## Projects and client area (Phase 5)
+
+- `milestones` and `project_updates` are admin-writable; portal members read only rows that are
+  `client_visible` / published, through `is_project_member()`. Private notes live in
+  `internal_notes`, which clients can never read.
+- `src/server/notifications.ts` sends client notifications through the outbox using only
+  client-facing fields (the status's client label, never internal labels or notes). Recipients:
+  the client's portal members, falling back to the billing email.
+- `src/server/portal-invites.ts` creates or links the auth user (service role, via
+  `find_user_id_by_email`), adds the `client_members` row and sends the invitation. Every admin
+  action calls the admin guard first; RLS remains the backstop.

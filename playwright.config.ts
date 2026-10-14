@@ -5,7 +5,7 @@ const baseURL = process.env.E2E_BASE_URL ?? `http://localhost:${PORT}`;
 
 // Admin and portal journeys are stateful and slower; run them on one mobile
 // and one desktop viewport rather than all four.
-const privateFlows = /(admin|portal|crm)\.spec\.ts/;
+const privateFlows = /(admin|portal|crm|projects)\.spec\.ts/;
 
 // Some sandboxes ship a pre-installed Chromium that does not match the
 // Playwright version; point at it with PLAYWRIGHT_CHROMIUM_PATH.
