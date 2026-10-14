@@ -53,7 +53,10 @@ test("FAQ accordions open", async ({ page }) => {
 test("before/after comparison responds to keyboard", async ({ page }) => {
   await page.goto("/services/website-redesign");
   const slider = page.getByLabel("Compare before and after redesign");
-  await slider.focus();
-  await page.keyboard.press("End");
-  await expect(slider).toHaveValue("100");
+  // A key press that lands before hydration is reset by React; retry until interactive.
+  await expect(async () => {
+    await slider.focus();
+    await page.keyboard.press("End");
+    await expect(slider).toHaveValue("100", { timeout: 500 });
+  }).toPass({ timeout: 10_000 });
 });

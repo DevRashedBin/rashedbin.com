@@ -3,9 +3,10 @@
 Website, CRM, client portal and invoicing for **Rashed (Rashedul Islam)** — an independent website
 design, development and optimisation business serving the UK, US, Europe and Bangladesh.
 
-> **Status:** Phase 2 of 7 complete (design system + public website). The enquiry form validates
-> fully but does **not** store submissions yet — storage arrives in Phase 4. Do not point the
-> production domain at this app until Phase 4 is complete. See [docs/ROADMAP.md](docs/ROADMAP.md).
+> **Status:** Phase 3 of 7 complete (database, authentication, permissions, admin dashboard). The
+> enquiry form validates fully but does **not** store submissions yet — that arrives in Phase 4. Do
+> not point the production domain at this app until Phase 4 is complete. See
+> [docs/ROADMAP.md](docs/ROADMAP.md).
 
 ## Stack
 
@@ -19,12 +20,17 @@ design, development and optimisation business serving the UK, US, Europe and Ban
 
 ## Getting started
 
+Requires Node 22 (see `.nvmrc`), pnpm and Docker.
+
 ```bash
-nvm use            # Node 22 (see .nvmrc; minimum 20.9)
 pnpm install
-cp .env.example .env.local
-pnpm dev           # http://localhost:3000
+pnpm db:start                    # local Supabase (Postgres, Auth, Mailpit) — applies migrations
+cp .env.example .env.local       # then paste API_URL / PUBLISHABLE_KEY / SECRET_KEY from `npx supabase status`
+pnpm admin:bootstrap --email you@example.com   # create the first admin (prompts for a password)
+pnpm dev                         # http://localhost:3000 — admin at /admin, client portal at /portal
 ```
+
+Local emails (portal sign-in codes) arrive in Mailpit at http://127.0.0.1:54324.
 
 ## Scripts
 
@@ -48,6 +54,8 @@ If your environment has a pre-installed Chromium that doesn't match Playwright's
 src/
   app/
     (site)/            public website: home, services, about, start-a-project, legal
+    admin/             dashboard: (auth) login + MFA, (app) overview, clients, content, settings, audit
+    portal/            client portal: (auth) email-code login, (app) client home
     layout.tsx         root layout: fonts, default metadata, indexing control
     sitemap.ts robots.ts opengraph-image.tsx not-found.tsx global-error.tsx
   components/
@@ -55,11 +63,14 @@ src/
     site/              header, footer, service switcher, process timeline, CTA band
     graphics/          hero diagram and one explainer graphic per service
     forms/             multi-step enquiry form and accessible field components
-  content/             typed content: site identity, services, FAQs, process, case studies
-  domain/              pure business logic (no I/O) — inquiry validation today
-  server/              server-only modules (inquiry storage stub until Phase 4)
+  content/             static content: site identity, process, principles, case studies
+  domain/              pure business logic and validation (no I/O): inquiry, content, clients, settings
+  server/              server-only: auth guards (auth.ts), Supabase clients, content repository, DB types
   lib/                 SEO metadata and JSON-LD helpers
-  proxy.ts             request proxy (404s for unknown service URLs; auth in Phase 3)
+  proxy.ts             404s for unknown service URLs; session refresh + nonce CSP for admin/portal
+supabase/              config, SQL migrations, email templates
+scripts/               admin bootstrap
+tests/db/              RLS and content tests (Vitest, real API sessions)
 e2e/                   Playwright tests
 docs/                  architecture, roadmap, content checklist, deployment
 ```

@@ -13,4 +13,9 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - Read `docs/ARCHITECTURE.md` and `docs/ROADMAP.md` before starting work.
 - Never invent client results, testimonials, metrics, credentials or business details.
 - Money is integer minor units; never use floating point for amounts.
-- Run `pnpm check` and `pnpm test:e2e` (after `pnpm build`) before pushing.
+- Local database: `pnpm db:start` (Docker). After changing `supabase/migrations`, run
+  `pnpm db:reset && pnpm db:types`. Never edit a migration that has been applied in production;
+  add a new one.
+- Every protected page or Server Action must call a guard from `src/server/auth.ts`; RLS is the
+  backstop, not the only check. Add an RLS test in `tests/db` for every new table.
+- Run `pnpm check`, `pnpm test:db` and `pnpm test:e2e` (after `pnpm build`) before pushing.

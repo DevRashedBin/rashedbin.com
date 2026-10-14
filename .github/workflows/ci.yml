@@ -12,8 +12,7 @@ concurrency:
 jobs:
   check:
     runs-on: ubuntu-latest
-    env:
-      NEXT_PUBLIC_SITE_URL: https://rashedbin.com
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -24,8 +23,26 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm format:check
       - run: pnpm lint
-      - run: pnpm typecheck
       - run: pnpm test
+
+      # Local Supabase: migrations, RLS and the public site's content all need it.
+      - run: pnpm db:start
+      - name: Write .env.local from the local stack
+        run: |
+          eval "$(pnpm exec supabase status -o env)"
+          {
+            echo "NEXT_PUBLIC_SITE_URL=https://rashedbin.com"
+            echo "NEXT_PUBLIC_SUPABASE_URL=$API_URL"
+            echo "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=$PUBLISHABLE_KEY"
+            echo "SUPABASE_SECRET_KEY=$SECRET_KEY"
+          } > .env.local
+      - name: Generated database types are up to date
+        run: |
+          pnpm exec supabase gen types typescript --local > /tmp/types.ts
+          pnpm exec prettier --stdin-filepath src/server/db/types.ts < /tmp/types.ts > /tmp/types.formatted.ts
+          diff -u src/server/db/types.ts /tmp/types.formatted.ts
+      - run: pnpm typecheck
+      - run: pnpm test:db
       - run: pnpm build
       - run: pnpm exec playwright install --with-deps chromium
       - run: pnpm test:e2e

@@ -39,3 +39,53 @@ security headers, navigation, keyboard-operable tabs and slider, and form valida
 
 **Not tested / not built yet:** real submission storage and emails (Phase 4), Lighthouse budgets
 (Phase 7), Rich Results Test validation (needs the deployed URL).
+
+## Phase 3 summary
+
+**Built**
+
+- Migrations (`supabase/migrations`): profiles and roles, clients, client memberships, internal
+  notes, business settings, concurrency-safe business numbering, append-only audit log, services and
+  FAQs, plus the Phase 2 content copied into the database.
+- Row Level Security on every table. Admin access needs the admin role **and** a TOTP-verified
+  session (`aal2`) — enforced in the database, not just the UI. Clients see only their own client
+  records; internal notes, settings and the audit log are admin-only.
+- Auth: admin password + mandatory TOTP (QR enrolment on first sign-in); client portal sign-in with
+  an emailed 6-digit code (no passwords, no self sign-up, no account enumeration).
+- `pnpm admin:bootstrap`: creates the first admin interactively; refuses if an admin exists; can
+  reset that admin's password or authenticator.
+- Proxy refreshes sessions and applies a per-request nonce CSP to `/admin`, `/portal`, `/auth`.
+- Admin dashboard: overview, clients (create, edit, search, paginate, archive/restore with
+  confirmation, private notes, duplicate-email protection), website content (service editor,
+  publish/unpublish, general FAQs), business settings (numbering preview), audit log.
+- Client portal: sign-in, account overview (projects arrive in Phase 5).
+- Public pages read services and FAQs from the database through a cached repository; edits appear
+  on the site within moments.
+
+**Tested** (all executed locally against the real local Supabase stack):
+
+- 24 unit tests; 27 database tests covering client isolation (including ID tampering), privilege
+  escalation, MFA enforcement at the database, duplicate prevention, audit immutability (even for
+  the service role), numbering uniqueness under concurrency, and content rules.
+- 180 Playwright tests: the Phase 2 suite plus admin and portal journeys on mobile and laptop —
+  login, MFA enrolment and rejection of wrong codes, aal1 sessions blocked, client accounts kept out
+  of the admin area, nonce CSP present with zero CSP violations, client CRUD with validation,
+  content edit reflected on the public site, settings validation, portal email-code sign-in seeing
+  only the user's own account, no account creation for unknown emails.
+- The bootstrap script's refusal and reset paths, run manually.
+
+**Found and fixed during testing**
+
+- A `SECURITY DEFINER` numbering function checked `current_user`, which is the function owner, so
+  any signed-in user could draw numbers. It now authorises on the request's JWT role. The RLS test
+  caught it.
+- Next.js 16.4 intermittently breaks the first client-side navigation to a page whose cache was
+  expired outright (`updateTag`). Content saves now use stale-while-revalidate plus immediate
+  background regeneration; a regression test covers it.
+
+**Not done yet / limitations**
+
+- Nothing is deployed: there is no production Supabase project yet (see `docs/DEPLOYMENT.md`).
+- Inviting clients to the portal, projects and invoices arrive in Phases 5–6.
+- The enquiry form's service list is still fixed in code; it becomes data-driven in Phase 4.
+- Case studies remain in `src/content/work.ts` until real ones exist.
