@@ -1,4 +1,4 @@
-import { getServices } from "@/content/services";
+import { getServices } from "@/server/content";
 import { getCaseStudies } from "@/content/work";
 
 export type NavLink = { href: string; label: string };
@@ -12,6 +12,6 @@ export function getPrimaryNav(): NavLink[] {
   ];
 }
 
-export function getServiceNav(): NavLink[] {
-  return getServices().map((s) => ({ href: `/services/${s.slug}`, label: s.shortName }));
+export async function getServiceNav(): Promise<NavLink[]> {
+  return (await getServices()).map((s) => ({ href: `/services/${s.slug}`, label: s.shortName }));
 }

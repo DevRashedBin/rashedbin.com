@@ -1,14 +1,14 @@
 import type { MetadataRoute } from "next";
-import { getServices } from "@/content/services";
+import { getServices } from "@/server/content";
 import { absoluteUrl } from "@/content/site";
 import { getCaseStudies } from "@/content/work";
 
 /** Public, indexable pages only. Private areas are never listed. */
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const pages: MetadataRoute.Sitemap = [
     { url: absoluteUrl("/"), changeFrequency: "monthly", priority: 1 },
     { url: absoluteUrl("/services"), changeFrequency: "monthly", priority: 0.9 },
-    ...getServices().map((s) => ({
+    ...(await getServices()).map((s) => ({
       url: absoluteUrl(`/services/${s.slug}`),
       changeFrequency: "monthly" as const,
       priority: 0.8,

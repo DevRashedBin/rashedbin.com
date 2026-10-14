@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { getServices } from "@/content/services";
+import type { Service } from "@/domain/content/service";
 import { breadcrumbJsonLd, faqJsonLd, serializeJsonLd, serviceJsonLd, siteJsonLd } from "./seo";
 
 describe("structured data", () => {
@@ -22,7 +22,11 @@ describe("structured data", () => {
       { name: "Services", path: "/services" },
     ]);
     expect(crumbs.itemListElement[1].item).toMatch(/^https:\/\/.+\/services$/);
-    const svc = serviceJsonLd(getServices()[0]);
+    const svc = serviceJsonLd({
+      slug: "technical-seo",
+      name: "Technical SEO",
+      metaDescription: "d",
+    } as Service);
     expect(svc.url).toMatch(/^https:\/\//);
   });
 

@@ -1,4 +1,4 @@
-import type { Faq } from "@/content/services";
+import type { Faq } from "@/domain/content/service";
 import { Plus } from "./icons";
 
 /** Accessible accordion built on native <details>, so it works without JavaScript. */

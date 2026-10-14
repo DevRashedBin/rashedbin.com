@@ -51,7 +51,13 @@ const nextConfig: NextConfig = {
   },
   async headers() {
     return [
-      { source: "/:path*", headers: securityHeaders },
+      // Admin, portal and auth routes receive a stricter per-request nonce CSP
+      // from src/proxy.ts instead of this static policy.
+      { source: "/((?!admin|portal|auth).*)", headers: securityHeaders },
+      {
+        source: "/(admin|portal|auth)/:path*",
+        headers: securityHeaders.filter((h) => h.key !== "Content-Security-Policy"),
+      },
       {
         // Private areas must never be indexed. Access control is enforced by
         // authentication (Phase 3); this header only covers crawlers.

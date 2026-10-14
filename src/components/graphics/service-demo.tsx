@@ -1,4 +1,4 @@
-import type { ServiceDemo as DemoKey } from "@/content/services";
+import type { ServiceDemo as DemoKey } from "@/domain/content/service";
 import { BeforeAfterDemo } from "./demos/before-after";
 import { BlueprintDemo } from "./demos/blueprint";
 import { BugTraceDemo } from "./demos/bug-trace";

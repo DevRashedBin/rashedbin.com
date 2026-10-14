@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { absoluteUrl, site } from "@/content/site";
-import type { Faq, Service } from "@/content/services";
+import type { Faq, Service } from "@/domain/content/service";
 
 type PageMetaInput = {
   title: string;

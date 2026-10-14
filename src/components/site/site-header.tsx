@@ -1,15 +1,16 @@
 import Link from "next/link";
+import { Suspense } from "react";
 import { ButtonLink } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
 import { ArrowUpRight } from "@/components/ui/icons";
-import { getServices } from "@/content/services";
+import { getServices } from "@/server/content";
 import { Logo } from "./logo";
 import { MobileMenu } from "./mobile-menu";
 import { getPrimaryNav, getServiceNav } from "./nav-data";
 
-export function SiteHeader() {
+export async function SiteHeader() {
   const primary = getPrimaryNav();
-  const services = getServices();
+  const services = await getServices();
 
   return (
     <header className="sticky top-0 z-50 border-b border-ink/[0.07] bg-paper/85 backdrop-blur-md">
@@ -75,7 +76,17 @@ export function SiteHeader() {
               Start a project
             </ButtonLink>
           </span>
-          <MobileMenu primary={primary} services={getServiceNav()} />
+          {/* usePathname() inside needs a boundary so the header can be prerendered. */}
+          <Suspense
+            fallback={
+              <span
+                aria-hidden
+                className="size-11 rounded-full border border-current/20 lg:hidden"
+              />
+            }
+          >
+            <MobileMenu primary={primary} services={await getServiceNav()} />
+          </Suspense>
         </div>
       </Container>
     </header>

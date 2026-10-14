@@ -5,7 +5,7 @@ import { site } from "@/content/site";
 import { Logo } from "./logo";
 import { getPrimaryNav, getServiceNav } from "./nav-data";
 
-export function SiteFooter() {
+export async function SiteFooter() {
   return (
     <footer className="bg-ink text-paper">
       <Container className="pt-6 pb-8 sm:pt-8">
@@ -17,7 +17,7 @@ export function SiteFooter() {
               Europe and Bangladesh.
             </p>
           </div>
-          <FooterColumn title="Services" links={getServiceNav()} />
+          <FooterColumn title="Services" links={await getServiceNav()} />
           <FooterColumn
             title="Company"
             links={[

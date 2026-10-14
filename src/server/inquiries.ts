@@ -8,7 +8,7 @@ export type SubmitInquiryResult =
 
 /** Inquiry storage needs the database configured in Phase 3/4. */
 export function isInquiryStorageConfigured(): boolean {
-  return Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY);
+  return Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.SUPABASE_SECRET_KEY);
 }
 
 /**

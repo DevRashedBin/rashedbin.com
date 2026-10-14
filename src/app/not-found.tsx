@@ -4,14 +4,15 @@ import { SiteFooter } from "@/components/site/site-footer";
 import { SiteHeader } from "@/components/site/site-header";
 import { ButtonLink } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
-import { getServices } from "@/content/services";
+import { getServices } from "@/server/content";
 
 export const metadata: Metadata = {
   title: "Page not found",
   robots: { index: false },
 };
 
-export default function NotFound() {
+export default async function NotFound() {
+  const services = await getServices();
   return (
     <>
       <SiteHeader />
@@ -39,7 +40,7 @@ export default function NotFound() {
               Services
             </p>
             <ul className="border-t border-ink/10">
-              {getServices().map((s) => (
+              {services.map((s) => (
                 <li key={s.slug} className="border-b border-ink/10">
                   <Link href={`/services/${s.slug}`} className="block py-3 hover:underline">
                     {s.name}

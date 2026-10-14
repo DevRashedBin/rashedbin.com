@@ -7,7 +7,7 @@ import { Container, Section } from "@/components/ui/container";
 import { JsonLd } from "@/components/ui/json-ld";
 import { SectionLabel } from "@/components/ui/section-label";
 import { principles } from "@/content/principles";
-import { getServices } from "@/content/services";
+import { getServices } from "@/server/content";
 import { breadcrumbJsonLd, pageMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = pageMetadata({
@@ -22,8 +22,8 @@ const crumbs = [
   { name: "About", path: "/about" },
 ];
 
-export default function AboutPage() {
-  const services = getServices();
+export default async function AboutPage() {
+  const services = await getServices();
   return (
     <>
       <section className="pt-10 pb-14 sm:pt-14 lg:pb-20">

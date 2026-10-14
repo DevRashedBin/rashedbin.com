@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
+import { cacheLife, cacheTag } from "next/cache";
 import Link from "next/link";
+import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { ServiceDemo } from "@/components/graphics/service-demo";
 import { CtaBand } from "@/components/site/cta-band";
@@ -11,18 +13,18 @@ import { FaqList } from "@/components/ui/faq-list";
 import { ArrowUpRight, Check } from "@/components/ui/icons";
 import { JsonLd } from "@/components/ui/json-ld";
 import { SectionLabel } from "@/components/ui/section-label";
-import { getRelatedServices, getService, getServices } from "@/content/services";
+import { CONTENT_TAG, getRelatedServices, getService, getServices } from "@/server/content";
 import { breadcrumbJsonLd, faqJsonLd, pageMetadata, serviceJsonLd } from "@/lib/seo";
 
-export function generateStaticParams() {
-  return getServices().map((s) => ({ slug: s.slug }));
+export async function generateStaticParams() {
+  return (await getServices()).map((s) => ({ slug: s.slug }));
 }
 
 export async function generateMetadata({
   params,
 }: PageProps<"/services/[slug]">): Promise<Metadata> {
   const { slug } = await params;
-  const service = getService(slug);
+  const service = await getService(slug);
   if (!service) return {};
   return pageMetadata({
     title: service.metaTitle,
@@ -31,12 +33,30 @@ export async function generateMetadata({
   });
 }
 
-export default async function ServicePage({ params }: PageProps<"/services/[slug]">) {
-  const { slug } = await params;
-  const service = getService(slug);
+/**
+ * Route params are request data for slugs that weren't known at build time, so
+ * they're read inside a Suspense boundary. The page body is cached per slug and
+ * refreshed when content is saved; slugs from generateStaticParams prerender to
+ * complete HTML. Unknown slugs never reach here: src/proxy.ts returns a 404.
+ */
+export default function ServicePage({ params }: PageProps<"/services/[slug]">) {
+  return (
+    <Suspense fallback={<div className="min-h-[80vh]" aria-busy="true" />}>
+      {params.then(({ slug }) => (
+        <ServiceBody slug={slug} />
+      ))}
+    </Suspense>
+  );
+}
+
+async function ServiceBody({ slug }: { slug: string }) {
+  "use cache";
+  cacheTag(CONTENT_TAG);
+  cacheLife("hours");
+  const service = await getService(slug);
   if (!service) notFound();
 
-  const related = getRelatedServices(service);
+  const related = await getRelatedServices(service);
   const crumbs = [
     { name: "Home", path: "/" },
     { name: "Services", path: "/services" },

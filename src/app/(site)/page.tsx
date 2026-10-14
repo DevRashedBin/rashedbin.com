@@ -11,11 +11,10 @@ import { FaqList } from "@/components/ui/faq-list";
 import { ArrowRight, ArrowUpRight, Check } from "@/components/ui/icons";
 import { JsonLd } from "@/components/ui/json-ld";
 import { SectionLabel } from "@/components/ui/section-label";
-import { generalFaqs } from "@/content/faqs";
 import { principles } from "@/content/principles";
-import { getServices } from "@/content/services";
 import { site } from "@/content/site";
 import { getCaseStudies } from "@/content/work";
+import { getGeneralFaqs, getServices } from "@/server/content";
 import { faqJsonLd, pageMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = pageMetadata({
@@ -35,8 +34,8 @@ const problems = [
   { problem: "Every edit needs a developer", service: "wordpress-elementor-development" },
 ];
 
-export default function HomePage() {
-  const services = getServices();
+export default async function HomePage() {
+  const [services, generalFaqs] = await Promise.all([getServices(), getGeneralFaqs()]);
   const caseStudies = getCaseStudies();
   const bySlug = new Map(services.map((s) => [s.slug, s]));
 

@@ -7,8 +7,7 @@ import { FaqList } from "@/components/ui/faq-list";
 import { ArrowUpRight } from "@/components/ui/icons";
 import { JsonLd } from "@/components/ui/json-ld";
 import { SectionLabel } from "@/components/ui/section-label";
-import { generalFaqs } from "@/content/faqs";
-import { getServices } from "@/content/services";
+import { getGeneralFaqs, getServices } from "@/server/content";
 import { breadcrumbJsonLd, faqJsonLd, pageMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = pageMetadata({
@@ -23,8 +22,8 @@ const crumbs = [
   { name: "Services", path: "/services" },
 ];
 
-export default function ServicesPage() {
-  const services = getServices();
+export default async function ServicesPage() {
+  const [services, generalFaqs] = await Promise.all([getServices(), getGeneralFaqs()]);
   return (
     <>
       <section className="pt-10 pb-12 sm:pt-14 lg:pb-16">
